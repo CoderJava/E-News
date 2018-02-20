@@ -15,4 +15,12 @@ interface NewsView : MvpView {
 
     fun loadDataFailed(message: String)
 
+    fun clickUnfavorite()
+
+    fun clickUnfavoriteFailed(message: String)
+
+    fun clickFavorite()
+
+    fun clickFavoriteFailed(message: String)
+
 }

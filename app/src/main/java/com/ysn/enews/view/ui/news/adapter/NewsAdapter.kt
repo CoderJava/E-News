@@ -21,15 +21,19 @@ import kotlinx.android.synthetic.main.item_news.view.*
 /**
  * Created by yudisetiawan on 2/19/18.
  */
-class NewsAdapter(private val context: Context, private val articlesNews: List<Article>,
+class NewsAdapter(private val context: Context,
+                  private val articlesNews: List<Article>,
                   private val articleHeadlineNews: List<Article>,
                   private val listViewTypeNews: List<Int>,
                   private val listViewTypeHeadlineNews: List<Int>,
                   private val listenerNewsAdapter: ListenerNewsAdapter,
-                  private val listenerHeadlineNewsAdapter: HeadlineNewsAdapter.ListenerHeadlineNewsAdapter) : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
+                  private val listenerHeadlineNewsAdapter: HeadlineNewsAdapter.ListenerHeadlineNewsAdapter,
+                  private val listFavoriteNews: List<Boolean>,
+                  private val listFavoriteHeadlineNews: List<Boolean>) : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
 
 
     private val TAG = javaClass.simpleName
+    private var headlineNewsAdapter: HeadlineNewsAdapter? = null
 
     companion object {
         val VIEW_TYPE_NEWS = 1
@@ -61,6 +65,7 @@ class NewsAdapter(private val context: Context, private val articlesNews: List<A
             VIEW_TYPE_NEWS -> {
                 val holderNews = holder as ViewHolderNews
                 val articleNews = articlesNews[position]
+                val isFavorite = listFavoriteNews[position]
                 Glide.with(context)
                         .load(articleNews.urlToImage)
                         .asBitmap()
@@ -73,18 +78,58 @@ class NewsAdapter(private val context: Context, private val articlesNews: List<A
                             }
                         })
                 holderNews.itemView.text_view_title_item_news.text = articleNews.title
+                isFavorite.let {
+                    if (it) {
+                        holderNews.itemView.image_view_action_favorite_item_news.setImageResource(R.drawable.ic_favorite_black_24dp)
+                    } else {
+                        holderNews.itemView.image_view_action_favorite_item_news.setImageResource(R.drawable.ic_favorite_border_black_24dp)
+                    }
+                }
             }
             VIEW_TYPE_HEADLINE -> {
                 val holderHeadlineNews = holder as ViewHolderHeadlineNews
                 holderHeadlineNews.itemView.recycler_view_data_headline_news_item_headline_news
                         .layoutManager = LinearLayoutManager(context, LinearLayout.HORIZONTAL, false)
+                headlineNewsAdapter = HeadlineNewsAdapter(context, articleHeadlineNews, listViewTypeHeadlineNews, listenerHeadlineNewsAdapter, listFavoriteHeadlineNews)
                 holderHeadlineNews.itemView.recycler_view_data_headline_news_item_headline_news
-                        .adapter = HeadlineNewsAdapter(context, articleHeadlineNews, listViewTypeHeadlineNews, listenerHeadlineNewsAdapter)
+                        .adapter = headlineNewsAdapter
             }
             else -> {
                 /** nothing to do in here */
             }
         }
+    }
+
+    fun refreshItemUnfavorite(article: Article) {
+        for (index in articlesNews.indices) {
+            if (articlesNews[index] == article) {
+                (articlesNews as ArrayList)[index] = article
+                (listFavoriteNews as ArrayList)[index] = false
+                notifyItemChanged(index)
+                notifyDataSetChanged()
+                break
+            }
+        }
+    }
+
+    fun refreshItemFavorite(article: Article) {
+        for (index in articlesNews.indices) {
+            if (articlesNews[index] == article) {
+                (articlesNews as ArrayList)[index] = article
+                (listFavoriteNews as ArrayList)[index] = true
+                notifyItemChanged(index)
+                notifyDataSetChanged()
+                break
+            }
+        }
+    }
+
+    fun refreshItemUnfavoriteHeadlineNews(article: Article) {
+        headlineNewsAdapter?.refreshItemUnfavorite(article)
+    }
+
+    fun refreshItemFavoriteHeadlineNews(article: Article) {
+        headlineNewsAdapter?.refreshItemFavorite(article)
     }
 
     override fun getItemCount(): Int = listViewTypeNews.size
@@ -93,11 +138,22 @@ class NewsAdapter(private val context: Context, private val articlesNews: List<A
 
     open inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
-    inner class ViewHolderNews(itemView: View) : ViewHolder(itemView) {
+    inner class ViewHolderNews(itemView: View) : ViewHolder(itemView), View.OnClickListener {
 
         init {
-            itemView.relative_layout_content_item_news.setOnClickListener {
-                listenerNewsAdapter.onClickNews(articlesNews[adapterPosition].url)
+            itemView.relative_layout_content_item_news.setOnClickListener(this)
+            itemView.image_view_action_favorite_item_news.setOnClickListener(this)
+        }
+
+        override fun onClick(view: View) {
+            when (view.id) {
+                R.id.relative_layout_content_item_news ->
+                    listenerNewsAdapter.onClickNews(articlesNews[adapterPosition].url)
+                R.id.image_view_action_favorite_item_news ->
+                    listenerNewsAdapter.onClickFavorite(articlesNews[adapterPosition])
+                else -> {
+                    /** nothing to do in here */
+                }
             }
         }
 
@@ -110,6 +166,8 @@ class NewsAdapter(private val context: Context, private val articlesNews: List<A
     interface ListenerNewsAdapter {
 
         fun onClickNews(url: String)
+
+        fun onClickFavorite(article: Article)
 
     }
 

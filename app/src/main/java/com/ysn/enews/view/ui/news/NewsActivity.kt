@@ -76,4 +76,20 @@ class NewsActivity : AppCompatActivity(), NewsView {
         Toast.makeText(this, message, duration)
                 .show()
     }
+
+    override fun clickUnfavorite() {
+        // TODO: do something in here if needed
+    }
+
+    override fun clickUnfavoriteFailed(message: String) {
+        showToast(message, Toast.LENGTH_SHORT)
+    }
+
+    override fun clickFavorite() {
+        // TODO: do something in here if needed
+    }
+
+    override fun clickFavoriteFailed(message: String) {
+        showToast(message, Toast.LENGTH_SHORT)
+    }
 }

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">E-News</string>
     <string name="image_view_cover_item_news">image view cover item news</string>
-    <string name="image_view_action_favorite_item_news">image view action favorite item news</string>
+    <string name="image_view_action_favorite_item_news">image view action favoriteNews item news</string>
     <string name="headline_news">Headline News</string>
 </resources>
