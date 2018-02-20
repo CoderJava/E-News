@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE"
+    android:paddingBottom="8dp"
+    android:paddingTop="8dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/relative_layout_content_item_news"
+        android:background="@drawable/all_bg_container_rounded_white"
+        android:paddingBottom="8dp"
+        android:paddingEnd="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp">
+
+        <ImageView
+            android:id="@+id/image_view_cover_item_news"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/image_view_cover_item_news"
+            android:scaleType="center"
+            android:src="@drawable/ic_image_black_24dp" />
+
+        <ImageView
+            android:id="@+id/image_view_action_favorite_item_news"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/image_view_cover_item_news"
+            android:contentDescription="@string/image_view_action_favorite_item_news"
+            android:src="@drawable/ic_favorite_border_black_24dp" />
+
+        <TextView
+            android:id="@+id/text_view_title_item_news"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/image_view_cover_item_news"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_toStartOf="@+id/image_view_action_favorite_item_news"
+            android:maxLines="2" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

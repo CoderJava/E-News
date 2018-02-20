@@ -38,8 +38,10 @@ dependencies {
     /** Android support */
     implementation "com.android.support:appcompat-v7:$androidSupportVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+    implementation "com.android.support:design:$androidSupportVersion"
 
     /** Testing Framework */
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation "junit:junit:$jUnitVersion"
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVersion"
@@ -62,6 +64,9 @@ dependencies {
     /** RxJava bindings for Android */
     implementation "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
 
+    /** RxJava bindings for Kotlin */
+    implementation "io.reactivex.rxjava2:rxkotlin:2.1.0"
+
     /** A Java serialization or deserialization library to convert Java Objects into JSON and back */
     implementation "com.google.code.gson:gson:$gsonVersion"
 
@@ -71,6 +76,9 @@ dependencies {
 
     /** Glide - An image loading and caching library for Android focused on smooth scrolling*/
     implementation "com.github.bumptech.glide:glide:$glideVersion"
+
+    /** Chrome Custom Tabs */
+    implementation "com.android.support:customtabs:$androidSupportVersion"
 
     /** Dependency Injection */
     /*implementation "com.google.dagger:dagger:$daggerVersion"
