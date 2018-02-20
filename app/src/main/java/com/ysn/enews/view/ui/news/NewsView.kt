@@ -23,4 +23,10 @@ interface NewsView : MvpView {
 
     fun clickFavoriteFailed(message: String)
 
+    fun scrollRecyclerViewProcess()
+
+    fun scrollRecyclerView()
+
+    fun scrollRecyclerViewFailed()
+
 }

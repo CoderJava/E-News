@@ -22,14 +22,14 @@ import kotlinx.android.synthetic.main.item_news.view.*
  * Created by yudisetiawan on 2/19/18.
  */
 class NewsAdapter(private val context: Context,
-                  private val articlesNews: List<Article>,
-                  private val articleHeadlineNews: List<Article>,
-                  private val listViewTypeNews: List<Int>,
-                  private val listViewTypeHeadlineNews: List<Int>,
-                  private val listenerNewsAdapter: ListenerNewsAdapter,
-                  private val listenerHeadlineNewsAdapter: HeadlineNewsAdapter.ListenerHeadlineNewsAdapter,
-                  private val listFavoriteNews: List<Boolean>,
-                  private val listFavoriteHeadlineNews: List<Boolean>) : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
+                  private var articlesNews: List<Article>,
+                  private var articleHeadlineNews: List<Article>,
+                  private var listViewTypeNews: List<Int>,
+                  private var listViewTypeHeadlineNews: List<Int>,
+                  private var listenerNewsAdapter: ListenerNewsAdapter,
+                  private var listenerHeadlineNewsAdapter: HeadlineNewsAdapter.ListenerHeadlineNewsAdapter,
+                  private var listFavoriteNews: List<Boolean>,
+                  private var listFavoriteHeadlineNews: List<Boolean>) : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
 
 
     private val TAG = javaClass.simpleName
@@ -132,6 +132,17 @@ class NewsAdapter(private val context: Context,
         headlineNewsAdapter?.refreshItemFavorite(article)
     }
 
+    fun onLoadMoreData() {
+        listenerNewsAdapter.onLoadMoreData()
+    }
+
+    fun refreshNews(listArticleNews: ArrayList<Article>, listViewTypeNews: ArrayList<Int>, listFavoriteNewsResult: ArrayList<Boolean>) {
+        this.articlesNews = listArticleNews
+        this.listViewTypeNews = listViewTypeNews
+        this.listFavoriteNews = listFavoriteNewsResult
+        notifyDataSetChanged()
+    }
+
     override fun getItemCount(): Int = listViewTypeNews.size
 
     override fun getItemViewType(position: Int): Int = listViewTypeNews[position]
@@ -168,6 +179,8 @@ class NewsAdapter(private val context: Context,
         fun onClickNews(url: String)
 
         fun onClickFavorite(article: Article)
+
+        fun onLoadMoreData()
 
     }
 

@@ -3,6 +3,8 @@ package com.ysn.enews.view.ui.news
 import android.content.Context
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
+import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import com.ysn.enews.api.Endpoints
 import com.ysn.enews.db.AppDatabase
 import com.ysn.enews.db.entity.FavoriteHeadlineNews
@@ -26,7 +28,18 @@ class NewsPresenter : MvpPresenter<NewsView> {
 
     private val TAG = javaClass.simpleName
     private var newsView: NewsView? = null
+    private var listArticleNews = ArrayList<Article>()
+    private var listArticleHeadlineNews = ArrayList<Article>()
+    private var listViewTypeNews = ArrayList<Int>()
+    private var listViewTypeHeadlineNews = ArrayList<Int>()
     private var newsAdapter: NewsAdapter? = null
+    private var currentPageNews: Int = 1
+    private var currentPageHeadlineNews: Int = 1
+    private var lastPageResultNews: Int = 1
+    private var lastPageResultHeadlineNews: Int = 1
+    private var listFavoriteNewsResult = ArrayList<Boolean>()
+    private var loading: Boolean = false
+    private var linearLayoutManager: LinearLayoutManager? = null
 
     override fun onAttach(mvpView: NewsView) {
         newsView = mvpView
@@ -37,15 +50,16 @@ class NewsPresenter : MvpPresenter<NewsView> {
     }
 
     fun onLoadData() {
+        loading = true
         val context = newsView?.getViewContext()
         val endpoints = NetworkClient.RetrofitNews
                 .getRetrofitNews()
                 ?.create(Endpoints::class.java)
-        val observableNews = endpoints!!.getNews("cnn", 10, 1)
+        val observableNews = endpoints!!.getNews("cnn", 10, currentPageNews)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
 
-        val observableHeadlineNews = endpoints.getHeadlineNews("bbc-news", 5, 1)
+        val observableHeadlineNews = endpoints.getHeadlineNews("bbc-news", 5, currentPageHeadlineNews)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
 
@@ -80,10 +94,28 @@ class NewsPresenter : MvpPresenter<NewsView> {
                         Function4<News, News, List<FavoriteNews>, List<FavoriteHeadlineNews>, Map<String, Any>> { articleNews, articleHeadlineNews, listFavoriteNews, listFavoriteHeadlineNews ->
                             val mapData = HashMap<String, Any>()
                             try {
-                                val listArticleNews = articleNews.articles
-                                val listArticleHeadlineNews = articleHeadlineNews.articles
-                                val listViewTypeNews = ArrayList<Int>()
-                                val listViewTypeHeadlineNews = ArrayList<Int>()
+                                listArticleNews = articleNews.articles as ArrayList<Article>
+                                listArticleHeadlineNews = articleHeadlineNews.articles as ArrayList<Article>
+                                listViewTypeNews = ArrayList()
+                                listViewTypeHeadlineNews = ArrayList()
+
+                                val totalResultNews = articleNews.totalResults
+                                val totalResultHeadlineNews = articleHeadlineNews.totalResults
+
+                                val modulusTotalResultNews = totalResultNews % 10
+                                lastPageResultNews = if (modulusTotalResultNews == 0) {
+                                    totalResultNews.div(10)
+                                } else {
+                                    totalResultNews.div(10).plus(1)
+                                }
+
+                                val modulusTotalResultHeadlineNews = totalResultHeadlineNews % 10
+                                lastPageResultHeadlineNews = if (modulusTotalResultHeadlineNews == 0) {
+                                    totalResultHeadlineNews.div(5)
+                                } else {
+                                    totalResultHeadlineNews.div(10).plus(1)
+                                }
+
 
                                 for (a in listArticleNews.indices) {
                                     if (a == 5) {
@@ -96,7 +128,7 @@ class NewsPresenter : MvpPresenter<NewsView> {
                                     listViewTypeHeadlineNews.add(HeadlineNewsAdapter.VIEW_TYPE_CONTENT)
                                 }
 
-                                val listFavoriteNewsResult = ArrayList<Boolean>()
+                                listFavoriteNewsResult = ArrayList<Boolean>()
                                 listArticleNews
                                         .map { datumFavoriteNews -> listFavoriteNews.any { it.url == datumFavoriteNews.url } }
                                         .forEach {
@@ -170,6 +202,12 @@ class NewsPresenter : MvpPresenter<NewsView> {
                                                                 }
                                                         )
                                             }
+
+                                            override fun onLoadMoreData() {
+                                                if (linearLayoutManager != null) {
+                                                    onLoadMoreDataFromServer()
+                                                }
+                                            }
                                         },
                                         object : HeadlineNewsAdapter.ListenerHeadlineNewsAdapter {
                                             override fun onClickHeadlineNews(url: String) {
@@ -231,6 +269,7 @@ class NewsPresenter : MvpPresenter<NewsView> {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { mapData: Map<String, Any> ->
+                            loading = false
                             val error = mapData["error"] as Boolean
                             if (error) {
                                 val message = mapData["message"] as String
@@ -245,6 +284,97 @@ class NewsPresenter : MvpPresenter<NewsView> {
     private fun launchChromeCustomTabs(context: Context?, url: String) {
         val customTabsIntent = CustomTabsIntent.Builder().build()
         customTabsIntent.launchUrl(context, Uri.parse(url))
+    }
+
+    fun onScrollRecyclerView(linearLayoutManager: LinearLayoutManager, dy: Int) {
+        this.linearLayoutManager = linearLayoutManager
+        if (dy > 0) {
+            val totalItemCount = linearLayoutManager.itemCount
+            val isEndOfList = linearLayoutManager.findLastCompletelyVisibleItemPosition() == totalItemCount - 1
+            if (isEndOfList && !loading && currentPageNews < lastPageResultNews) {
+                loading = true
+                newsView?.scrollRecyclerViewProcess()
+                newsAdapter?.onLoadMoreData()
+                Log.d(TAG, "lastPageResultNews: $lastPageResultNews")
+            }
+        }
+    }
+
+    private fun onLoadMoreDataFromServer() {
+        Log.d(TAG, "onLoadMoreDataFromServer")
+        val context = newsView?.getViewContext()
+        val endpoints = NetworkClient.RetrofitNews
+                .getRetrofitNews()
+                ?.create(Endpoints::class.java)
+        val observableNews = endpoints!!.getNews("cnn", 10, currentPageNews + 1)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+
+        val observableFavoriteNews = Observable
+                .create<List<FavoriteNews>> { emitter: ObservableEmitter<List<FavoriteNews>> ->
+                    val listFavoriteNews = AppDatabase.getInstance(context!!)
+                            .favoriteNewsDao()
+                            .getAllFavorites()
+                    emitter.onNext(listFavoriteNews)
+                    emitter.onComplete()
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+
+        Observable
+                .zip(
+                        observableNews,
+                        observableFavoriteNews,
+                        io.reactivex.functions.BiFunction<News, List<FavoriteNews>, Map<String, Any>> { articleNews, listFavoriteNews ->
+                            val mapData = HashMap<String, Any>()
+
+                            val totalResultNews = articleNews.totalResults
+                            val modulusTotalResultNews = totalResultNews % 10
+                            lastPageResultNews = if (modulusTotalResultNews == 0) {
+                                totalResultNews.div(10)
+                            } else {
+                                totalResultNews.div(10).plus(1)
+                            }
+
+                            val listArticleNewsRefresh = articleNews.articles
+                            val listViewTypeNewsRefresh = ArrayList<Int>()
+                            for (a in listArticleNewsRefresh.indices) {
+                                listViewTypeNewsRefresh.add(NewsAdapter.VIEW_TYPE_NEWS)
+                            }
+
+                            val listFavoriteNewsResultRefresh = ArrayList<Boolean>()
+                            listArticleNewsRefresh
+                                    .map { datumFavoriteNews -> listFavoriteNews.any { it.url == datumFavoriteNews.url } }
+                                    .forEach {
+                                        if (it) {
+                                            listFavoriteNewsResultRefresh.add(true)
+                                        } else {
+                                            listFavoriteNewsResultRefresh.add(false)
+                                        }
+                                    }
+
+                            listArticleNews.addAll(listArticleNewsRefresh)
+                            listViewTypeNews.addAll(listViewTypeNewsRefresh)
+                            listFavoriteNewsResult.addAll(listFavoriteNewsResultRefresh)
+                            mapData["error"] = false
+                            mapData
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { mapData: Map<String, Any> ->
+                            loading = false
+                            val error = mapData["error"] as Boolean
+                            if (error) {
+                                newsView?.scrollRecyclerViewFailed()
+                            } else {
+                                newsAdapter?.refreshNews(listArticleNews, listViewTypeNews, listFavoriteNewsResult)
+                                currentPageNews += 1
+                                newsView?.scrollRecyclerView()
+                            }
+                        }
+                )
     }
 
 }

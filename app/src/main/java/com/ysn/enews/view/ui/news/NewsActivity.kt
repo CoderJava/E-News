@@ -3,8 +3,10 @@ package com.ysn.enews.view.ui.news
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Toast
@@ -16,6 +18,7 @@ class NewsActivity : AppCompatActivity(), NewsView {
 
     private val TAG = javaClass.simpleName
     private var newsPresenter: NewsPresenter? = null
+    private var snackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +66,13 @@ class NewsActivity : AppCompatActivity(), NewsView {
 
     override fun loadData(newsAdapter: NewsAdapter?) {
         hideLoading()
-        recycler_view_data_news_activity_news.layoutManager = LinearLayoutManager(this)
+        val linearLayoutManager = LinearLayoutManager(this)
+        recycler_view_data_news_activity_news.layoutManager = linearLayoutManager
+        recycler_view_data_news_activity_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                newsPresenter?.onScrollRecyclerView(linearLayoutManager, dy)
+            }
+        })
         recycler_view_data_news_activity_news.adapter = newsAdapter
     }
 
@@ -75,6 +84,11 @@ class NewsActivity : AppCompatActivity(), NewsView {
     fun Activity.showToast(message: String, duration: Int) {
         Toast.makeText(this, message, duration)
                 .show()
+    }
+
+    fun Activity.showSnackbar(message: String, duration: Int) {
+        snackbar = Snackbar.make(findViewById(android.R.id.content), message, duration)
+        snackbar?.show()
     }
 
     override fun clickUnfavorite() {
@@ -92,4 +106,22 @@ class NewsActivity : AppCompatActivity(), NewsView {
     override fun clickFavoriteFailed(message: String) {
         showToast(message, Toast.LENGTH_SHORT)
     }
+
+    override fun scrollRecyclerViewProcess() {
+        showSnackbar("Load more data", Snackbar.LENGTH_INDEFINITE)
+    }
+
+    override fun scrollRecyclerView() {
+        if (snackbar?.isShown!!) {
+            snackbar?.dismiss()
+        }
+    }
+
+    override fun scrollRecyclerViewFailed() {
+        if (snackbar?.isShown!!) {
+            snackbar?.dismiss()
+        }
+        showToast("Load more data failed", Toast.LENGTH_SHORT)
+    }
+
 }
