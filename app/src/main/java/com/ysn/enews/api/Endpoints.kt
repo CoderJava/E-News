@@ -1,3 +1,10 @@
+/*
+ * Created by Yudi Setiawan on 2/21/18 1:57 AM
+ * Copyright (c) 2018. All rights reserved.
+ *
+ * Last modified 2/19/18 10:43 PM
+ */
+
 package com.ysn.enews.api
 
 import com.ysn.e_news.BuildConfig

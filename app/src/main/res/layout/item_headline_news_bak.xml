@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Created by Yudi Setiawan on 2/21/18 1:57 AM
+  ~ Copyright (c) 2018. All rights reserved.
+  ~
+  ~ Last modified 2/19/18 9:56 PM
+  -->
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">

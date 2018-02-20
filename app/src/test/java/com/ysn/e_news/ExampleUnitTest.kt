@@ -1,3 +1,10 @@
+/*
+ * Created by Yudi Setiawan on 2/21/18 1:57 AM
+ * Copyright (c) 2018. All rights reserved.
+ *
+ * Last modified 2/19/18 8:27 PM
+ */
+
 package com.ysn.e_news
 
 import org.junit.Assert.assertEquals

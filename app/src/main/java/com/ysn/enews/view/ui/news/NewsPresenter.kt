@@ -1,3 +1,10 @@
+/*
+ * Created by Yudi Setiawan on 2/21/18 1:57 AM
+ * Copyright (c) 2018. All rights reserved.
+ *
+ * Last modified 2/21/18 1:55 AM
+ */
+
 package com.ysn.enews.view.ui.news
 
 import android.content.Context
