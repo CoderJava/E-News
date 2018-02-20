@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import com.ysn.enews.api.Endpoints
 import com.ysn.enews.db.AppDatabase
 import com.ysn.enews.db.entity.FavoriteHeadlineNews
@@ -295,13 +294,11 @@ class NewsPresenter : MvpPresenter<NewsView> {
                 loading = true
                 newsView?.scrollRecyclerViewProcess()
                 newsAdapter?.onLoadMoreData()
-                Log.d(TAG, "lastPageResultNews: $lastPageResultNews")
             }
         }
     }
 
     private fun onLoadMoreDataFromServer() {
-        Log.d(TAG, "onLoadMoreDataFromServer")
         val context = newsView?.getViewContext()
         val endpoints = NetworkClient.RetrofitNews
                 .getRetrofitNews()
